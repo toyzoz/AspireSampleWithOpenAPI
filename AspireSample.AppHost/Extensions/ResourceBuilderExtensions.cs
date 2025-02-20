@@ -13,7 +13,7 @@ public static class ResourceBuilderExtensions
         return builder.WithCommand(
             openApiOption.Name,
             openApiOption.DisplayName,
-            _ =>
+             _ =>
             {
                 try
                 {
