@@ -5,19 +5,20 @@ namespace AspireSample.AppHost.Extensions;
 
 public static class ResourceBuilderExtensions
 {
-    private static IResourceBuilder<T> WithOpenApiDocs<T>(this IResourceBuilder<T> builder,
-        string name, string displayName, string openApiUiPath)
+    private static IResourceBuilder<T> WithOpenApiDocs<T, TK>(this IResourceBuilder<T> builder,
+        TK openApiOption)
         where T : IResourceWithEndpoints
+        where TK : OpenApiOption
     {
         return builder.WithCommand(
-            name,
-            displayName,
+            openApiOption.Name,
+            openApiOption.DisplayName,
             _ =>
             {
                 try
                 {
                     var endpoint = builder.GetEndpoint("https");
-                    var url = $"{endpoint.Url}/{openApiUiPath}";
+                    var url = $"{endpoint.Url}/{openApiOption.OpenApiUiPath}";
                     Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
 
                     return Task.FromResult(new ExecuteCommandResult { Success = true });
@@ -41,22 +42,23 @@ public static class ResourceBuilderExtensions
 
     public static IResourceBuilder<T> WithSwaggerUi<T>(this IResourceBuilder<T> builder)
         where T : IResourceWithEndpoints
+
     {
-        builder.WithOpenApiDocs("swagger-ui-docs", "Swagger API Documentation", "swagger");
+        builder.WithOpenApiDocs(new SwaggerUiOption());
         return builder;
     }
 
     public static IResourceBuilder<T> WithRedoc<T>(this IResourceBuilder<T> builder)
         where T : IResourceWithEndpoints
     {
-        builder.WithOpenApiDocs("redoc-docs", "Redoc API Documentation", "api-docs");
+        builder.WithOpenApiDocs(new RedocOption());
         return builder;
     }
 
     public static IResourceBuilder<T> WithScalar<T>(this IResourceBuilder<T> builder)
         where T : IResourceWithEndpoints
     {
-        builder.WithOpenApiDocs("scalar-docs", "Scalar API Documentation", "scalar");
+        builder.WithOpenApiDocs(new ScalarOption());
         return builder;
     }
 }
@@ -65,7 +67,7 @@ public abstract class OpenApiOption
 {
     public string Name { get; set; } = default!;
     public string DisplayName { get; set; } = default!;
-    public string openApiUiPath { get; set; } = default!;
+    public string OpenApiUiPath { get; set; } = default!;
 }
 
 public class SwaggerUiOption : OpenApiOption
@@ -74,10 +76,9 @@ public class SwaggerUiOption : OpenApiOption
     {
         Name = "swagger-ui-docs";
         DisplayName = "Swagger API Documentation";
-        openApiUiPath = "swagger";
+        OpenApiUiPath = "swagger";
     }
 }
-
 
 public class RedocOption : OpenApiOption
 {
@@ -85,10 +86,9 @@ public class RedocOption : OpenApiOption
     {
         Name = "redoc-docs";
         DisplayName = "Redoc API Documentation";
-        openApiUiPath = "api-docs";
+        OpenApiUiPath = "api-docs";
     }
 }
-
 
 public class ScalarOption : OpenApiOption
 {
@@ -96,6 +96,6 @@ public class ScalarOption : OpenApiOption
     {
         Name = "scalar-docs";
         DisplayName = "Scalar API Documentation";
-        openApiUiPath = "scalar";
+        OpenApiUiPath = "scalar";
     }
 }
