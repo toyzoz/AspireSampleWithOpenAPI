@@ -1,3 +1,6 @@
+using AspireSample.ApiService;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,6 +13,13 @@ builder.Services.AddProblemDetails();
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+//builder.Services.AddDbContext<MyContext>(optionsAction =>
+//{
+//    optionsAction.UseSqlServer(builder.Configuration.GetConnectionString("apiservicedb"));
+//});
+
+builder.AddSqlServerDbContext<MyContext>("apiservicedb");
 
 var app = builder.Build();
 
@@ -28,7 +38,7 @@ if (app.Environment.IsDevelopment())
     {
         options.SpecUrl("/openapi/v1.json");
     });
-    
+
     app.MapScalarApiReference();
 }
 
@@ -47,6 +57,14 @@ app.MapGet("/weatherforecast", () =>
     return forecast;
 })
 .WithName("GetWeatherForecast");
+
+app.MapGet("/products", async (MyContext context) =>
+{
+    await context.Database.EnsureCreatedAsync();
+    var product = await context.Products.ToListAsync();
+    return product;
+})
+.WithName("GetProducts");
 
 app.MapDefaultEndpoints();
 
